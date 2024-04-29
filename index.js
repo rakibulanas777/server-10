@@ -135,10 +135,26 @@ app.post("/tours", async (req, res) => {
 
 app.get("/tours", async (req, res) => {
   try {
-    const database = client.db("toursDB");
-    const toursCollection = database.collection("tour");
-    const tours = await toursCollection.find({}).toArray();
-    res.status(200).json(tours);
+    const { country } = req.query;
+
+    if (country === "all") {
+      const database = client.db("toursDB");
+      const toursCollection = database.collection("tour");
+      const tours = await toursCollection.find({}).toArray();
+      res.status(200).json(tours);
+    } else {
+      const database = client.db("toursDB");
+      const toursCollection = database.collection("tour");
+
+      let query = {};
+      if (country) {
+        query = { country_name: country };
+      }
+
+      const tours = await toursCollection.find(query).toArray();
+
+      res.status(200).json(tours);
+    }
   } catch (error) {
     console.error("Error fetching tours:", error);
     res.status(500).json({ error: "Failed to fetch tours" });
