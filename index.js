@@ -39,7 +39,7 @@ app.post("/users", async (req, res) => {
     const usersCollection = database.collection("users");
     const result = await usersCollection.insertOne(user);
     const token = jwt.sign({ id: result.insertedId }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "1d",
     });
 
     res.status(201).json({
@@ -73,7 +73,7 @@ app.post("/users/signin", async (req, res) => {
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
       {
-        expiresIn: "1h",
+        expiresIn: "1d",
       }
     );
 
@@ -185,6 +185,60 @@ app.get("/toursUser", async (req, res) => {
   } catch (error) {
     console.error("Error fetching tours:", error);
     res.status(500).json({ error: "Failed to fetch tours" });
+  }
+});
+
+app.put("/tours/:tourId", async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const updatedTour = req.body;
+
+    if (!ObjectId.isValid(tourId)) {
+      return res.status(400).json({ error: "Invalid tour ID format" });
+    }
+
+    const database = client.db("toursDB");
+    const toursCollection = database.collection("tour");
+
+    const result = await toursCollection.updateOne(
+      { _id: new ObjectId(tourId) },
+      { $set: updatedTour }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: "Tour not found" });
+    }
+
+    res.status(200).json({ message: "Tour updated successfully" });
+  } catch (error) {
+    console.error("Error updating tour:", error);
+    res.status(500).json({ error: "Failed to update tour" });
+  }
+});
+
+app.delete("/tours/:tourId", async (req, res) => {
+  try {
+    const { tourId } = req.params;
+
+    if (!ObjectId.isValid(tourId)) {
+      return res.status(400).json({ error: "Invalid tour ID format" });
+    }
+
+    const database = client.db("toursDB");
+    const toursCollection = database.collection("tour");
+
+    const result = await toursCollection.deleteOne({
+      _id: new ObjectId(tourId),
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Tour not found" });
+    }
+
+    res.status(200).json({ message: "Tour deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting tour:", error);
+    res.status(500).json({ error: "Failed to delete tour" });
   }
 });
 
