@@ -182,9 +182,17 @@ app.get("/tours/:tourId", async (req, res) => {
 app.get("/toursUser", async (req, res) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const userEmail = decodedToken.email;
 
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decodedToken.id);
+
+    //const userEmail = decodedToken.email;
+    const database1 = client.db("usersDB");
+    const usersCollection = database1.collection("users");
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(decodedToken.id),
+    });
+    const userEmail = user.email;
     const database = client.db("toursDB");
     const toursCollection = database.collection("tour");
     //const tours = await toursCollection.find({}).toArray();
